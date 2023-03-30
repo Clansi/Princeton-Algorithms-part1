@@ -1,19 +1,23 @@
-import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Board {
 
-    private int[][] tiles;
+    private final int[][] tiles;
     private int n;
 
     // create a board from an n-by-n array of tiles,
     // where tiles[row][col] = tile at (row, col)
     public Board(int[][] tiles){
-        this.tiles = tiles;
-        n = tiles.length;
+        int len = tiles.length;
+        this.tiles = new int[len][len];
+        for (int i = 0; i < len; i++) {
+            System.arraycopy(tiles[i], 0, this.tiles[i], 0, len);
+        }
+        n = len;
     }
 
     // string representation of this board
@@ -80,12 +84,13 @@ public class Board {
 
     // does this board equal y?
     public boolean equals(Object y){
-        if (y instanceof Board){
+        if (!(y instanceof Board)) {
+            return false;
+        }
             Board other = (Board) y;
             if (this.n != other.n) {
                 return false;
             }
-            else {
             for (int i = 0; i < n; i++) {
                     for (int j = 0; j < n; j++) {
                         if (this.tiles[i][j] != other.tiles[i][j]){
@@ -93,18 +98,13 @@ public class Board {
                         }
                     }
                 }
-            }
-        }
-        else{
-            return false;
-        }
         return true;
     }
-    private int[][] copytile(Board board){
-        int[][] copy = new int[board.n][board.n];
-        for (int i = 0; i < board.n; i++) {
-            for (int j = 0; j < board.n; j++) {
-                copy[i][j] = board.tiles[i][j];
+    private int[][] copytile() {
+        int[][] copy = new int[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                copy[i][j] = tiles[i][j];
             }
         }
         return copy;
@@ -128,33 +128,30 @@ public class Board {
         for (int[] dir : directions) {
             int newrow = blankrow + dir[0];
             int newcol = blankcol + dir[1];
-            if (newrow >= 0 && newrow < n && newcol >=0 && newcol < n){  // neighbor exists
-                int[][] newtile = copytile(this);
+            if (newrow >= 0 && newrow < n && newcol >= 0 && newcol < n) {  // neighbor exists
+                int[][] newtile = copytile();
                 newtile[blankrow][blankcol] = newtile[newrow][newcol];
                 newtile[newrow][newcol] = 0;
                 boards.add(new Board(newtile));
             }
         }
-            return boards;
+        return boards;
     }
     // a board that is obtained by exchanging any pair of tiles
-    public Board twin(){
-        int [][] newtile = copytile(this);
-        int row1 = StdRandom.uniformInt(n);
-        int col1 = StdRandom.uniformInt(n);
-        int row2 = StdRandom.uniformInt(n);
-        int col2 = StdRandom.uniformInt(n);
 
-        while (newtile[row1][col1] == 0 || newtile[row2][col2] == 0 || (row1 == row2 && col1 == col2)){
-             row1 = StdRandom.uniformInt(n);
-             col1 = StdRandom.uniformInt(n);
-             row2 = StdRandom.uniformInt(n);
-             col2 = StdRandom.uniformInt(n);
+    // 文档把一个关键点漏了 ，这里twin一定不能是随机的 测试里要看经过若干次twin后 board跟twin后的board是否相同。
+    public Board twin() {
+        int [][] newtile = copytile();
+
+        int row = 0;
+        while (row < n && (newtile[row][0] == 0 || newtile[row][1] == 0)) {
+            row++;
         }
 
-        int temp = newtile[row1][col1];
-        newtile[row1][col1] = newtile[row2][col2];
-        newtile[row2][col2] = temp;
+        // Swap the first two elements of the row
+        int temp = newtile[row][0];
+        newtile[row][0] = newtile[row][1];
+        newtile[row][1] = temp;
 
         return new Board(newtile);
     }
